@@ -1,11 +1,7 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
-```{r}
+
+```r
 library(knitr)
 opts_chunk$set(echo=TRUE, results = 'hold')
 library(lattice)
@@ -16,21 +12,44 @@ library(data.table)
 Get the original data https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2Factivity.zip; unzip file, set working directory to location of file.
 
 Create a place to hold the data downloaded; view header info
-```{r}
+
+```r
 rawData <- read.csv('activity.csv') 
 head(rawData)
 ```
 
+```
+##   steps       date interval
+## 1    NA 2012-10-01        0
+## 2    NA 2012-10-01        5
+## 3    NA 2012-10-01       10
+## 4    NA 2012-10-01       15
+## 5    NA 2012-10-01       20
+## 6    NA 2012-10-01       25
+```
+
 ## What is mean total number of steps taken per day?
 Create dataset with total number of steps per day; view header
-```{r}
+
+```r
 SumStepsDaily <- aggregate(rawData$steps,list(rawData$date),sum)
 colnames(SumStepsDaily)<-c("date","steps")
 head(SumStepsDaily)
 ```
 
+```
+##         date steps
+## 1 2012-10-01    NA
+## 2 2012-10-02   126
+## 3 2012-10-03 11352
+## 4 2012-10-04 12116
+## 5 2012-10-05 13294
+## 6 2012-10-06 15420
+```
+
 histogram of total steps per day
-```{r, echo=TRUE}
+
+```r
 with(SumStepsDaily, {
   par(oma=c(2,0,0,0), mar=c(6.75,6.75,3,0), mgp=c(5.75,0.75,0), las=2)
   barplot(
@@ -44,16 +63,28 @@ with(SumStepsDaily, {
 })
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+
 Calculate & View mean of daily steps:
-```{r}
+
+```r
 meanDailySteps <- mean(SumStepsDaily$steps,na.rm=TRUE)
 meanDailySteps
 ```
 
+```
+## [1] 10766.19
+```
+
 Caluculate & View median of daily steps
-```{r}
+
+```r
 medianDailySteps <- median(SumStepsDaily$steps, na.rm=TRUE)
 medianDailySteps
+```
+
+```
+## [1] 10765
 ```
 
 ##What is the average daily activity pattern?
@@ -64,7 +95,8 @@ medianDailySteps
 
 Generate the mean (average) number of steps taken (ignoring NA values) for each 5-minute interval, itself averaged across all days.
 
-```{r}
+
+```r
 intervalSteps <- aggregate(
   data=rawData,
   steps~interval,
@@ -76,9 +108,20 @@ colnames(intervalSteps) <- c("Interval", "AvgStepsAvgAcrossDay")
 head(intervalSteps)
 ```
 
+```
+##   Interval AvgStepsAvgAcrossDay
+## 1        0            1.7169811
+## 2        5            0.3396226
+## 3       10            0.1320755
+## 4       15            0.1509434
+## 5       20            0.0754717
+## 6       25            2.0943396
+```
+
 Create a plot
 
-```{r, echo=TRUE}
+
+```r
 with(intervalSteps, {
     plot(
       x=Interval,
@@ -92,10 +135,13 @@ with(intervalSteps, {
 })
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-8-1.png) 
+
 - Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
 
 Find max
-```{r}
+
+```r
 intervalMax <- intervalSteps[intervalSteps$AvgStepsAvgAcrossDay==max(intervalSteps$AvgStepsAvgAcrossDay),]
 ```
 
@@ -104,14 +150,16 @@ intervalMax <- intervalSteps[intervalSteps$AvgStepsAvgAcrossDay==max(intervalSte
 
 count number of NA records
 
-```{r}
+
+```r
 countNA <- nrow(subset(rawData, is.na(rawData$steps)))
 ```
 
 - Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5 minute interval, etc.
 
 Fill in missing data with mean values
-```{r}
+
+```r
 stepValues <- data.frame(rawData$steps)
 stepValues[is.na(stepValues),] <- ceiling(tapply(X=rawData$steps,INDEX=rawData$interval,FUN=mean,na.rm=TRUE))
 newData <- cbind(stepValues, rawData[,2:3])
@@ -120,20 +168,43 @@ head(newData)
 countNA
 ```
 
+```
+##   Steps       Date Interval
+## 1     2 2012-10-01        0
+## 2     1 2012-10-01        5
+## 3     1 2012-10-01       10
+## 4     1 2012-10-01       15
+## 5     1 2012-10-01       20
+## 6     3 2012-10-01       25
+## [1] 2304
+```
+
 - Create a new dataset that is equal to the original dataset but with the missing data filled in.
 
 Total number of steps per date with NA values filled in
 
-```{r}
+
+```r
 newDailyStepSum <- aggregate(newData$Steps, list(newData$Date), sum)
 colnames(newDailyStepSum)<-c("date","steps")
 head(newDailyStepSum)
 ```
 
+```
+##         date steps
+## 1 2012-10-01 10909
+## 2 2012-10-02   126
+## 3 2012-10-03 11352
+## 4 2012-10-04 12116
+## 5 2012-10-05 13294
+## 6 2012-10-06 15420
+```
+
 - Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
 
 Graph of total number of steps per day with NA values filled in
-```{r,echo=TRUE}
+
+```r
 with(newDailyStepSum, {
   par(oma=c(2,0,0,0), mar=c(6.75,6.75,3,0), mgp=c(5.75,0.75,0), las=2)
   barplot(
@@ -145,12 +216,14 @@ with(newDailyStepSum, {
     space=c(0)
   )
 })
-
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-13-1.png) 
 
 Calculate new mean and median
 
-```{r}
+
+```r
 meannew<- mean(newDailyStepSum$steps)
 mediannew <- median(newDailyStepSum$steps)
 
@@ -158,10 +231,15 @@ meannew
 mediannew
 ```
 
-Compare new mean and median with original
-Original Mean: `r meanDailySteps` compared to `r meannew` with NAs filled in.
+```
+## [1] 10784.92
+## [1] 10909
+```
 
-Original Median: `r medianDailySteps` compared to `r mediannew` with NAs filled in.
+Compare new mean and median with original
+Original Mean: 1.0766189\times 10^{4} compared to 1.0784918\times 10^{4} with NAs filled in.
+
+Original Median: 10765 compared to 1.0909\times 10^{4} with NAs filled in.
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
@@ -169,7 +247,8 @@ Original Median: `r medianDailySteps` compared to `r mediannew` with NAs filled 
 
 separated by weekday, weekend
 
-```{r}
+
+```r
 dateDayType <- data.frame(sapply(X = newData$Date, FUN = function(day) {
   if (weekdays(as.Date(day)) %in% c("Monday", "Tuesday", "Wednesday", "Thursday", 
                                     "Friday")) {
@@ -188,10 +267,21 @@ dayTypeIntervalSteps <- aggregate(
        FUN="mean"
    )
 head(dayTypeIntervalSteps)
-```   
+```
+
+```
+##   DayType Interval     Steps
+## 1 weekday        0 2.2888889
+## 2 weekend        0 0.2500000
+## 3 weekday        5 0.5333333
+## 4 weekend        5 0.1250000
+## 5 weekday       10 0.2888889
+## 6 weekend       10 0.1250000
+```
 
 Plot of weekday and weekend
-```{r, echo=TRUE}
+
+```r
 xyplot(
    type="l",
    data=dayTypeIntervalSteps,
@@ -201,3 +291,5 @@ xyplot(
    layout=c(1,2)
 )
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-16-1.png) 
